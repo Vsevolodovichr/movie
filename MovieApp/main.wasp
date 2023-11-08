@@ -1,0 +1,107 @@
+app Movie {
+  wasp: {
+    version: "^0.11.4"
+  },
+  title: "Movie",
+  client: {
+    rootComponent: import { Layout } from "@client/Layout.jsx",
+  },
+  db: {
+    prisma: {
+      clientPreviewFeatures: ["extendedWhereUnique"]
+    }
+  },
+  auth: {
+    userEntity: User,
+    methods: {
+      usernameAndPassword: {}
+    },
+    onAuthFailedRedirectTo: "/login",
+    onAuthSucceededRedirectTo: "/"
+  },
+}
+
+route LoginRoute { path: "/login", to: LoginPage }
+page LoginPage {
+  component: import Login from "@client/pages/auth/Login.jsx"
+}
+route SignupRoute { path: "/signup", to: SignupPage }
+page SignupPage {
+  component: import Signup from "@client/pages/auth/Signup.jsx"
+}
+
+entity User {=psl
+    id       Int     @id @default(autoincrement())
+    username String  @unique
+    password String
+    movies   Movie[]
+psl=}
+
+entity Movie {=psl
+    id       Int     @id @default(autoincrement())
+    title    String
+    year     Int
+    genres   String
+    category String
+    archived Boolean @default(false)
+    user     User    @relation(fields: [userId], references: [id])
+    userId   Int
+psl=}
+
+action archiveMovie {
+  fn: import { archiveMovie } from "@server/actions.js",
+  entities: [Movie]
+}
+
+action createMovie {
+  fn: import { createMovie } from "@server/actions.js",
+  entities: [Movie]
+}
+
+query getMovie {
+  fn: import { getMovie } from "@server/queries.js",
+  entities: [Movie]
+}
+
+query getMovies {
+  fn: import { getMovies } from "@server/queries.js",
+  entities: [Movie]
+}
+
+query getMoviesByCategory {
+  fn: import { getMoviesByCategory } from "@server/queries.js",
+  entities: [Movie]
+}
+
+query getMoviesByTitle {
+  fn: import { getMoviesByTitle } from "@server/queries.js",
+  entities: [Movie]
+}
+
+query getMoviesByYear {
+  fn: import { getMoviesByYear } from "@server/queries.js",
+  entities: [Movie]
+}
+
+query getMoviesByGenres {
+  fn: import { getMoviesByGenres } from "@server/queries.js",
+  entities: [Movie]
+}
+
+route HomePageRoute { path: "/", to: HomePage }
+page HomePage {
+  component: import { HomePage } from "@client/pages/Home.jsx",
+  authRequired: false
+}
+
+route MovieRoute { path: "/movie/:movieId", to: MoviePage }
+page MoviePage {
+  component: import { Movie } from "@client/pages/Movie.jsx",
+  authRequired: true
+}
+
+route SearchRoute { path: "/search", to: SearchPage }
+page SearchPage {
+  component: import { Search } from "@client/pages/Search.jsx",
+  authRequired: true
+}
